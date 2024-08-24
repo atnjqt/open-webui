@@ -37,6 +37,11 @@ from config import (
     WEBUI_AUTH,
     WEBUI_AUTH_TRUSTED_EMAIL_HEADER,
     WEBUI_AUTH_TRUSTED_NAME_HEADER,
+    USE_SAML_ROLE_ASSIGNMENT,
+    WEBUI_AUTH_TRUSTED_ROLE_HEADER,
+    TRUSTED_ADMIN_ROLE_VALUE,
+    TRUSTED_USER_ROLE_VALUE,
+    TRUSTED_PENDING_ROLE_VALUE
 )
 
 router = APIRouter()
@@ -209,11 +214,29 @@ async def signup(request: Request, response: Response, form_data: SignupForm):
         raise HTTPException(400, detail=ERROR_MESSAGES.EMAIL_TAKEN)
 
     try:
-        role = (
-            "admin"
-            if Users.get_num_users() == 0
-            else request.app.state.config.DEFAULT_USER_ROLE
-        )
+        if USE_SAML_ROLE_ASSIGNMENT == True:
+            if WEBUI_AUTH_TRUSTED_ROLE_HEADER not in request.headers:
+                raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)
+            header_saml_role = request.headers[WEBUI_AUTH_TRUSTED_ROLE_HEADER]
+            if header_saml_role == TRUSTED_ADMIN_ROLE_VALUE:
+                trusted_saml_role_val = "admin"
+            elif header_saml_role == TRUSTED_USER_ROLE_VALUE:
+                trusted_saml_role_val = "user"
+            elif header_saml_role == TRUSTED_PENDING_ROLE_VALUE:
+                trusted_saml_role_val = "pending"
+            else:
+                raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_ROLE)
+            role = (
+                "admin"
+                if Users.get_num_users() == 0
+                else trusted_saml_role_val
+            )
+        else:
+            role = (
+                "admin"
+                if Users.get_num_users() == 0
+                else request.app.state.config.DEFAULT_USER_ROLE
+            )
         hashed = get_password_hash(form_data.password)
         user = Auths.insert_new_auth(
             form_data.email.lower(),
