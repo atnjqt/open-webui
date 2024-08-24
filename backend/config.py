@@ -796,6 +796,21 @@ DEFAULT_PROMPT_SUGGESTIONS = PersistentConfig(
         },
     ],
 )
+USE_SAML_ROLE_ASSIGNMENT = (
+    os.environ.get("USE_SAML_ROLE_ASSIGNMENT", "False").lower() == "true"
+)
+WEBUI_AUTH_TRUSTED_ROLE_HEADER = os.environ.get(
+    "WEBUI_AUTH_TRUSTED_ROLE_HEADER", None
+)
+TRUSTED_ADMIN_ROLE_VALUE = os.environ.get(
+    "TRUSTED_ADMIN_ROLE_VALUE", None
+)
+TRUSTED_USER_ROLE_VALUE = os.environ.get(
+    "TRUSTED_USER_ROLE_VALUE", None
+)
+TRUSTED_PENDING_ROLE_VALUE = os.environ.get(
+    "TRUSTED_PENDING_ROLE_VALUE", None
+)
 
 DEFAULT_USER_ROLE = PersistentConfig(
     "DEFAULT_USER_ROLE",
